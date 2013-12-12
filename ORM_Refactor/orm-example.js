@@ -3,34 +3,124 @@
  * before running this example. Documentation is at http://sequelizejs.com/
  */
 
-var Sequelize = require("sequelize");
-var sequelize = new Sequelize("chat", "bacon", "pass");
-/* TODO this constructor takes the database name, username, then password.
- * Modify the arguments if you need to */
+var
+  Sequelize = require("sequelize"),
+  http      = require('http'),
+  url       = require('url'),
+  port      = 8080,
+  ip        = '127.0.0.1',
+  qs        = require('qs');
 
-/* first define the data structure by giving property names and datatypes
- * See http://sequelizejs.com for other datatypes you can use besides STRING. */
+//////////////////////////
+///// DATABASE STUFF /////
+//////////////////////////
+
+
+var sequelize = new Sequelize("sequelizer", "root", null);
+
 var User = sequelize.define('User', {
-  user_name: Sequelize.STRING,
+  user_name: Sequelize.STRING
+}, {
+  timestamps: true
 });
 
 /* .sync() makes Sequelize create the database table for us if it doesn't
  *  exist already: */
-User.sync().success(function() {
-  /* This callback function is called once sync succeeds. */
+User.sync();
 
-  // now instantiate an object and save it:
-  var newUser = User.build({user_name: "Jean Valjean"});
-  newUser.save().success(function() {
+var Messages = sequelize.define('Messages', {
+  message: Sequelize.STRING,
+  username: Sequelize.STRING(20)
+});
 
-    /* This callback function is called once saving succeeds. */
+Messages.sync();
 
-    // Retrieve objects from the database:
-    User.findAll({ where: {user_name: "Jean Valjean"} }).success(function(usrs) {
-      // This function is called back with an array of matches.
-      for (var i = 0; i < usrs.length; i++) {
-        console.log(usrs[i].user_name + " exists");
-      }
+
+//////////////////////
+/// SERVER STUFF /////
+//////////////////////
+
+
+
+var handleRequest = function(request, response){
+  console.log("Serving request type " + request.method + " for url " + request.url);
+  var pathname = url.parse(request.url).pathname;
+  if(router[pathname]){
+    var handler = router[pathname];
+    handler(request, response);
+  } else {
+    // 404
+  }
+};
+
+////////////////////////
+///// ROOT METHODS /////
+////////////////////////
+
+var rootMethods = function(request, response){
+  response.writeHead(200, {location: 'http://www.google.com'});
+  response.end();
+};
+
+////////////////////////
+///// CHATROOM API /////
+////////////////////////
+
+var chatRoomMethods = function(request, response){
+  switch(request.method){
+    case "GET":
+      chatRoomMethods.get(request, response);
+      break;
+    case "POST":
+      chatRoomMethods.post(request, response);
+      break;
+    case "OPTIONS":
+      chatRoomMethods.options(request, response);
+      break;
+  }
+};
+
+chatRoomMethods.post = function(request, response) {
+  var body = '';
+  request.on('data', function(data) {
+    body+= data;
+  });
+  var success = false;
+  request.on('end', function() {
+    Messages.create(qs.parse(body)).success(function(){
+      response.writeHead(200);
+      response.end();
+    }).error(function(){
+      response.writeHead(80085);
+      response.end('You Fail');
     });
   });
-});
+};
+
+chatRoomMethods.get = function(request, response) {
+  Messages.findAll().success(function(messages){
+    response.writeHead(200);
+    response.end(JSON.stringify(messages));
+  }).error(function(){
+    response.writeHead(80085);
+    response.end('You Fail');
+  });
+};
+
+
+
+//////////////////
+///// SERVER /////
+//////////////////
+
+var router = {
+  '/': rootMethods,
+  '/classes/room1': chatRoomMethods
+};
+
+console.log("Listening on http://" + ip + ":" + port);
+
+var server = http.createServer(handleRequest);
+server.listen(port, ip);
+
+
