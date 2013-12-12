@@ -8,7 +8,7 @@ drop table if exists `messages`;
 
 create table messages (
   `body` varchar(255) not null,
-  `user_id` int(6) not null,
+  `username` varchar(20) not null,
   `createdAt` date not null
 );
 
