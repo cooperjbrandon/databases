@@ -7,9 +7,9 @@ use chat;
 drop table if exists `messages`;
 
 create table messages (
-  `body` varchar(255) not null,
+  `message` varchar(255) not null,
   `username` varchar(20) not null,
-  `createdAt` date not null
+  `createdAt` timestamp default current_timestamp
 );
 
 drop table if exists `users`;
@@ -32,3 +32,5 @@ create table chatrooms (
 /*  Execute this file from the command line by typing:
  *    mysql < schema.sql
  *  to create the database and the tables.*/
+
+

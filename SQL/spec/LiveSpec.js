@@ -14,7 +14,7 @@ describe("Persistent Node Chat Server", function() {
     });
     dbConnection.connect();
 
-    var tablename = "messages"; 
+    var tablename = "messages";
 
     dbConnection.query("DELETE FROM " + tablename, done);
   });
@@ -40,7 +40,7 @@ describe("Persistent Node Chat Server", function() {
                * The exact query string and query args to use
                * here depend on the schema you design, so I'll leave
                * them up to you. */
-              dbConnection.query( queryString, queryArgs,
+              dbConnection.query("select * from messages",
                 function(err, results, fields) {
                   // Should have one result:
                   expect(results.length).toEqual(1);
@@ -57,7 +57,7 @@ describe("Persistent Node Chat Server", function() {
 
   it("Should output all messages from the DB", function(done) {
     // Let's insert a message into the db
-    var queryString = "";
+    var queryString = "insert into messages (username, message) values (?, ?)";
     var queryArgs = ["Javert", "Men like you can never change!"];
     /* TODO - The exact query string and query args to use
      * here depend on the schema you design, so I'll leave
