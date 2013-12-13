@@ -26,7 +26,8 @@ describe("Persistent Node Chat Server", function() {
       uri: "http://127.0.0.1:8080/classes/room1",
       form: {
         username: "Valjean",
-        message: "In mercy's name, three days is all I need."
+        message: "In mercy's name, three days is all I need.",
+        chatroom: "Nice"
       }
     }, function(error, response, body) {
       var queryString = "select * from Message";

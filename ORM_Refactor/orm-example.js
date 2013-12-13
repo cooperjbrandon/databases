@@ -100,13 +100,12 @@ chatRoomMethods.post = function(request, response) {
     body += data;
   });
 
-
   request.on('end', function() {
-    var responsething = qs.parse(body);
+    var chatMessage = qs.parse(body);
 
-    User.findOrCreate({ username: responsething.username }).success(function(user){
+    User.findOrCreate({ username: chatMessage.username }).success(function(user){
       var message = Message.build({
-        text: responsething.message
+        text: chatMessage.message
       });
       message.setUser(user);
       message.save().success(function(){
@@ -119,9 +118,6 @@ chatRoomMethods.post = function(request, response) {
     });
   });
 };
-
-
-//now you can call User.find(3).getMessages() to get array of messages from the third user
 
 chatRoomMethods.get = function(request, response) {
   Messages.findAll().success(function(messages){
