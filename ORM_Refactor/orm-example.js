@@ -11,34 +11,47 @@ var
   ip        = '127.0.0.1',
   qs        = require('qs');
 
-//////////////////////////
-///// DATABASE STUFF /////
-//////////////////////////
+/////////////////////////////
+///// MODEL DEFINITIONS /////
+/////////////////////////////
 
 
 var sequelize = new Sequelize("sequelizer", "root", null);
 
 var User = sequelize.define('User', {
-  user_name: Sequelize.STRING
-}, {
-  timestamps: true
+  username: Sequelize.STRING
 });
 
-/* .sync() makes Sequelize create the database table for us if it doesn't
- *  exist already: */
+var Message = sequelize.define('Message', {
+  text: Sequelize.STRING
+});
+
+var Chatroom = sequelize.define('Chatroom', {
+  name: Sequelize.STRING
+});
+
+//////////////////////////
+///// RELATIONSHIPS  /////
+//////////////////////////
+
+User.belongsTo(Chatroom);
+Chatroom.hasMany(User);
+
+Message.belongsTo(User);
+User.hasMany(Message);
+
+Chatroom.hasMany(Message);
+Message.belongsTo(Chatroom);
+
+
 User.sync();
-
-var Messages = sequelize.define('Messages', {
-  message: Sequelize.STRING,
-  username: Sequelize.STRING(20)
-});
-
-Messages.sync();
+Message.sync();
+Chatroom.sync();
 
 
-//////////////////////
-/// SERVER STUFF /////
-//////////////////////
+////////////////////////
+///// SERVER STUFF /////
+////////////////////////
 
 
 
@@ -82,20 +95,33 @@ var chatRoomMethods = function(request, response){
 
 chatRoomMethods.post = function(request, response) {
   var body = '';
+
   request.on('data', function(data) {
-    body+= data;
+    body += data;
   });
-  var success = false;
+
+
   request.on('end', function() {
-    Messages.create(qs.parse(body)).success(function(){
-      response.writeHead(200);
-      response.end();
-    }).error(function(){
-      response.writeHead(80085);
-      response.end('You Fail');
+    var responsething = qs.parse(body);
+
+    User.findOrCreate({ username: responsething.username }).success(function(user){
+      var message = Message.build({
+        text: responsething.message
+      });
+      message.setUser(user);
+      message.save().success(function(){
+        response.writeHead(200);
+        response.end();
+      }).error(function(){
+        response.writeHead(80085);
+        response.end('You Fail');
+      });
     });
   });
 };
+
+
+//now you can call User.find(3).getMessages() to get array of messages from the third user
 
 chatRoomMethods.get = function(request, response) {
   Messages.findAll().success(function(messages){

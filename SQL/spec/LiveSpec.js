@@ -11,7 +11,7 @@ describe("Persistent Node Chat Server", function() {
     });
     dbConnection.connect();
 
-    var tablename = "messages";
+    var tablename = "Message";
 
     dbConnection.query("DELETE FROM " + tablename, done);
   });
@@ -20,31 +20,30 @@ describe("Persistent Node Chat Server", function() {
     dbConnection.end();
   });
 
-  it("Should insert posted messages to the DB", function(done) {
-    request({method: "POST",
-             uri: "http://127.0.0.1:8080/classes/room1",
-             form: {username: "Valjean",
-                    message: "In mercy's name, three days is all I need."}
-            },
-            function(error, response, body) {
+  it("Should insert posted Message to the DB", function(done) {
+    request({
+      method: "POST",
+      uri: "http://127.0.0.1:8080/classes/room1",
+      form: {
+        username: "Valjean",
+        message: "In mercy's name, three days is all I need."
+      }
+    }, function(error, response, body) {
+      var queryString = "select * from Message";
 
-              var queryString = "select * from messages where username = ?";
-              var queryArgs = ["Valjean"];
-
-              dbConnection.query("select * from messages",
-                function(err, results, fields) {
-                  expect(results.length).toEqual(1);
-                  expect(results[0].username).toEqual("Valjean");
-                  expect(results[0].message).toEqual("In mercy's name, three days is all I need.");
+      dbConnection.query("select * from Message",
+      function(err, results, fields) {
+        expect(results.length).toEqual(1);
+        expect(results[0].text).toEqual("In mercy's name, three days is all I need.");
 
 
-                  done();
-                });
-            });
+        done();
+      });
+    });
   });
 
-  it("Should output all messages from the DB", function(done) {
-    var queryString = "insert into messages (username, message) values (?, ?)";
+  it("Should output all Message from the DB", function(done) {
+    var queryString = "insert into Message (username, message) values (?, ?)";
     var queryArgs = ["Javert", "Men like you can never change!"];
 
 

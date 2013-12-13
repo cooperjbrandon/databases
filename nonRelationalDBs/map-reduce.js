@@ -34,3 +34,11 @@ db.collection.mapReduce(
     out: "map_reduce_example_output"
   }
 );
+
+
+{quantity: 50}
+{quantity: 50};
+{quantity: 70}
+
+{"quantity": [50, 50]}
+{"quantity": 70}
